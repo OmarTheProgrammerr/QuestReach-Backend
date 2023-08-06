@@ -55,7 +55,9 @@ const Contact = mongoose.model("Contact", contactSchema, "ContactInfo");
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.get("/", (req, res) => {
+  res.send("Hello, world!");
+});
 app.post("/contact", upload.single("image"), async (req, res) => {
   console.log("Received a request at /contact");
   console.log("Request body:", req.body);
