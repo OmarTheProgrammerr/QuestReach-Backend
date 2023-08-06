@@ -66,6 +66,7 @@ app.post("/contact", upload.single("image"), async (req, res) => {
 
   try {
     const contact = await newContact.save();
+    console.log("Contact ID:", contact._id);
 
     QRCode.toDataURL(
       `${req.protocol}://${req.get("host")}/contact/${contact._id.toString()}`, // Now it's a URL that the QR code will lead to
