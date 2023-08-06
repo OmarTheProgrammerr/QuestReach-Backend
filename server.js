@@ -67,15 +67,14 @@ app.post("/contact", upload.single("image"), async (req, res) => {
   try {
     const contact = await newContact.save();
 
-    // generate QR code with the contact's unique MongoDB ID
     QRCode.toDataURL(
-      contact._id.toString(),
+      `${req.protocol}://${req.get("host")}/contact/${contact._id.toString()}`, // Now it's a URL that the QR code will lead to
       {
         errorCorrectionLevel: "L",
       },
       function (err, url) {
         if (err) console.error(err);
-        else res.status(200).json({ url: url });
+        else res.status(200).json({ url: url, id: contact._id }); // Now it also returns the id of the contact
       }
     );
   } catch (error) {
@@ -83,6 +82,7 @@ app.post("/contact", upload.single("image"), async (req, res) => {
     res.status(500).json({ error: error.toString() });
   }
 });
+
 app.get("/contact/:id", async (req, res) => {
   console.log(`Received a request at /contact/${req.params.id}`);
 
