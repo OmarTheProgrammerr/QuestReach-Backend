@@ -75,20 +75,16 @@ app.post("/contact", upload.single("image"), async (req, res) => {
   }
 
   try {
-    setTimeout(function () {
-      QRCode.toDataURL(
-        `${req.protocol}://${req.get(
-          "host"
-        )}/contact/${contact._id.toString()}`,
-        {
-          errorCorrectionLevel: "L",
-        },
-        function (err, url) {
-          if (err) console.error(err);
-          else res.status(200).json({ url: url, id: contact._id });
-        }
-      );
-    }, 6000);
+    QRCode.toDataURL(
+      `${req.protocol}://${req.get("host")}/contact/${contact._id.toString()}`,
+      {
+        errorCorrectionLevel: "L",
+      },
+      function (err, url) {
+        if (err) console.error(err);
+        else res.status(200).json({ url: url, id: contact._id });
+      }
+    );
   } catch (error) {
     console.error("Error generating QR code:", error);
     res.status(500).json({ error: error.toString() });
