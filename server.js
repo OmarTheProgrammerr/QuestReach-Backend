@@ -3,13 +3,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const vCard = require("vcards-js");
 const app = express();
 const QRCode = require("qrcode");
 const multer = require("multer");
 const upload = multer();
-const zlib = require("pako");
-const base64 = require("base64-js");
 
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -52,28 +49,32 @@ const contactSchema = new mongoose.Schema(
 
 const Contact = mongoose.model("Contact", contactSchema, "ContactInfo");
 
-app.enable("trust proxy");
-
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.get("/", (req, res) => {
   res.send("Hello, world!");
 });
-console.log("Hello 1");
+
 app.post("/contact", upload.single("image"), async (req, res) => {
   console.log("Received a request at /contact");
   console.log("Request body:", req.body);
 
   const newContact = new Contact(req.body);
 
+  let contact;
+
   try {
-    const contact = await newContact.save();
-    console.log("Contact ID:", contact._id);
+    contact = await newContact.save();
+    console.log("Saved Contact:", contact);
+  } catch (error) {
+    console.error("Error saving contact:", error);
+    res.status(500).json({ error: error.toString() });
+    return;
+  }
 
-    console.log("Protocol:", req.protocol);
-    console.log("Host:", req.get("host"));
-
+  try {
     setTimeout(function () {
       QRCode.toDataURL(
         `${req.protocol}://${req.get(
@@ -87,13 +88,13 @@ app.post("/contact", upload.single("image"), async (req, res) => {
           else res.status(200).json({ url: url, id: contact._id });
         }
       );
-    }, 6000); // 2000 milliseconds = 2 seconds
+    }, 6000);
   } catch (error) {
-    console.error("Error saving contact or generating QR code:", error);
+    console.error("Error generating QR code:", error);
     res.status(500).json({ error: error.toString() });
   }
 });
-console.log("Hello 2");
+
 app.get("/contact/:id", async (req, res) => {
   console.log(`Received a request at /contact/${req.params.id}`);
 
@@ -113,7 +114,6 @@ app.get("/contact/:id", async (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.log("Hello 3");
   console.error(err.stack);
   res.status(500).send("Something broke!");
 });
