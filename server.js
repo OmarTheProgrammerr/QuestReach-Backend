@@ -63,30 +63,29 @@ app.post("/contact", upload.single("image"), async (req, res) => {
 
   const newContact = new Contact(req.body);
 
-  let contact;
-
   try {
-    contact = await newContact.save();
+    const contact = await newContact.save();
     console.log("Saved Contact:", contact);
-  } catch (error) {
-    console.error("Error saving contact:", error);
-    res.status(500).json({ error: error.toString() });
-    return;
-  }
+    console.log("Protocol:", req.protocol);
+    console.log("Host:", req.get("host"));
 
-  try {
     QRCode.toDataURL(
       `${req.protocol}://${req.get("host")}/contact/${contact._id.toString()}`,
       {
         errorCorrectionLevel: "L",
       },
       function (err, url) {
-        if (err) console.error(err);
-        else res.status(200).json({ url: url, id: contact._id });
+        console.log("QRCode.toDataURL callback function called.");
+        if (err) {
+          console.error("Error generating QR code:", err);
+        } else {
+          console.log("Generated QR code URL:", url);
+          res.status(200).json({ url: url, id: contact._id });
+        }
       }
     );
   } catch (error) {
-    console.error("Error generating QR code:", error);
+    console.error("Error saving contact or generating QR code:", error);
     res.status(500).json({ error: error.toString() });
   }
 });
