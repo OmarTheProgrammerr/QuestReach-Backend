@@ -49,7 +49,12 @@ const contactSchema = new mongoose.Schema(
 
 const Contact = mongoose.model("Contact", contactSchema, "ContactInfo");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -65,12 +70,13 @@ app.post("/contact", upload.single("image"), async (req, res) => {
 
   try {
     const contact = await newContact.save();
-    console.log("Saved Contact:", contact);
-    console.log("Protocol:", req.protocol);
-    console.log("Host:", req.get("host"));
 
+    // Modify this part
+    const qrUrl = `http://${
+      req.headers.host
+    }/contact/${contact._id.toString()}`;
     QRCode.toDataURL(
-      `${req.protocol}://${req.get("host")}/contact/${contact._id.toString()}`,
+      qrUrl,
       {
         errorCorrectionLevel: "L",
       },
