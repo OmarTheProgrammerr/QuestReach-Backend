@@ -62,7 +62,7 @@ app.get("/", (req, res) => {
   res.send("Hello, world!");
 });
 
-app.post("/contact", upload.single("image"), async (req, res) => {
+app.post("/contact", async (req, res) => {
   console.log("Received a request at /contact");
   console.log("Request body:", req.body);
 
@@ -70,28 +70,9 @@ app.post("/contact", upload.single("image"), async (req, res) => {
 
   try {
     const contact = await newContact.save();
-
-    // Modify this part
-    const qrUrl = `http://${
-      req.headers.host
-    }/contact/${contact._id.toString()}`;
-    QRCode.toDataURL(
-      qrUrl,
-      {
-        errorCorrectionLevel: "L",
-      },
-      function (err, url) {
-        console.log("QRCode.toDataURL callback function called.");
-        if (err) {
-          console.error("Error generating QR code:", err);
-        } else {
-          console.log("Generated QR code URL:", url);
-          res.status(200).json({ url: url, id: contact._id });
-        }
-      }
-    );
+    res.json({ id: contact._id }); // Just send the ID back
   } catch (error) {
-    console.error("Error saving contact or generating QR code:", error);
+    console.error("Error saving contact:", error);
     res.status(500).json({ error: error.toString() });
   }
 });
